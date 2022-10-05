@@ -1,5 +1,7 @@
 package unsw.blackout;
 
+import unsw.response.models.FileInfoResponse;
+
 public class File {
     private String filename;
     private String content;
@@ -40,6 +42,10 @@ public class File {
     }
     public void setFromId(String fromId) {
         this.fromId = fromId;
+    }
+
+    public FileInfoResponse getFileInfo() {
+        return new FileInfoResponse(filename, content, size, transferCompleted);
     }
 }
 

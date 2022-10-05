@@ -1,10 +1,16 @@
 package unsw.blackout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import unsw.response.models.EntityInfoResponse;
+import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 import unsw.utils.MathsHelper;
+
+import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
 
 public abstract class Device {
     private String deviceId;
@@ -78,4 +84,11 @@ public abstract class Device {
         return null;
     }
 
+    public EntityInfoResponse getDeviceInfo() {
+        Map<String, FileInfoResponse> filesMap = new HashMap<String, FileInfoResponse>();
+        for (File file : files) {
+            filesMap.put(file.getFilename(), file.getFileInfo());
+        }
+        return new EntityInfoResponse(deviceId, position, RADIUS_OF_JUPITER, type, filesMap);
+}
 }

@@ -98,30 +98,12 @@ public class BlackoutController {
         EntityInfoResponse info;
         for (Satellite satellite : satellites) {
             if (satellite.getSatelliteId() == id) {
-                ArrayList<File> files = satellite.getFiles();
-                Map<String, FileInfoResponse> filesMap = new HashMap<String, FileInfoResponse>();
-                for (File file : files) {
-                    FileInfoResponse fileInfo = new FileInfoResponse(
-                        file.getFilename(), file.getContent(), file.getSize(), file.isTransferCompleted());
-                    filesMap.put(file.getFilename(), fileInfo);
-                }
-                info = new EntityInfoResponse(id, satellite.getPosition(),
-                    satellite.getHeight(), satellite.getType(), filesMap);
-                return info;
+                return satellite.getSatelliteInfo();
             }
         }
         for (Device device : devices) {
             if (device.getDeviceId() == id) {
-                ArrayList<File> files = device.getFiles();
-                Map<String, FileInfoResponse> filesMap = new HashMap<String, FileInfoResponse>();
-                for (File file : files) {
-                    FileInfoResponse fileInfo = new FileInfoResponse(
-                        file.getFilename(), file.getContent(), file.getSize(), file.isTransferCompleted());
-                    filesMap.put(file.getFilename(), fileInfo);
-                }
-
-                info = new EntityInfoResponse(id, device.getPosition(), RADIUS_OF_JUPITER, device.getType(), filesMap);
-                return info;
+                return device.getDeviceInfo();
             }
         }
         return null;

@@ -1,9 +1,14 @@
 package unsw.blackout;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import unsw.utils.Angle;
 import unsw.utils.MathsHelper;
+
+import unsw.response.models.EntityInfoResponse;
+import unsw.response.models.FileInfoResponse;
 
 public abstract class Satellite {
     private String satelliteId;
@@ -149,4 +154,11 @@ public abstract class Satellite {
         return null;
     }
 
+    public EntityInfoResponse getSatelliteInfo() {
+        Map<String, FileInfoResponse> filesMap = new HashMap<String, FileInfoResponse>();
+        for (File file : files) {
+            filesMap.put(file.getFilename(), file.getFileInfo());
+        }
+        return new EntityInfoResponse(satelliteId, position, height, type, filesMap);
+    }
 }
