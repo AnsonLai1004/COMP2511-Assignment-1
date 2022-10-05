@@ -90,5 +90,23 @@ public abstract class Device {
             filesMap.put(file.getFilename(), file.getFileInfo());
         }
         return new EntityInfoResponse(deviceId, position, RADIUS_OF_JUPITER, type, filesMap);
-}
+    }
+
+    public File deviceSendFile(String fileName) {
+        for (File f : files) {
+            if (f.getFilename() == fileName) {
+                File sendFile = new File(fileName, "");
+                sendFile.setFromId(deviceId);
+                sendFile.setTransferCompleted(false);
+                sendFile.setSize(f.getSize());
+                f.setTransferCompleted(false);
+                return sendFile;
+            }
+        }
+        return null;
+    }
+
+    public void deviceReceiveFile(File file) {
+        files.add(file);
+    }
 }

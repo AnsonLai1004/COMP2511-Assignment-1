@@ -43,7 +43,6 @@ public class File {
     public void setFromId(String fromId) {
         this.fromId = fromId;
     }
-
     public FileInfoResponse getFileInfo() {
         return new FileInfoResponse(filename, content, size, transferCompleted);
     }

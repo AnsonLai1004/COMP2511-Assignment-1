@@ -95,7 +95,6 @@ public class BlackoutController {
 
     public EntityInfoResponse getInfo(String id) {
         // TODO: Task 1h)
-        EntityInfoResponse info;
         for (Satellite satellite : satellites) {
             if (satellite.getSatelliteId() == id) {
                 return satellite.getSatelliteInfo();
@@ -132,18 +131,17 @@ public class BlackoutController {
 
     public List<String> communicableEntitiesInRange(String id) {
         // TODO: Task 2 b)
-        List<String> communicables = new ArrayList<String>();
         for (Satellite sat : satellites) {
             if (sat.getSatelliteId() == id) {
-                communicables = sat.updateCommunicables(satellites, devices);
+                return sat.updateCommunicables(satellites, devices);
             }
         }
         for (Device dev : devices) {
             if (dev.getDeviceId() == id) {
-                communicables = dev.updateCommunicables(satellites, devices);
+                return dev.updateCommunicables(satellites, devices);
             }
         }
-        return communicables;
+        return null;
     }
 
     public void sendFile(String fileName, String fromId, String toId) throws FileTransferException {
@@ -166,93 +164,25 @@ public class BlackoutController {
         if (to.getFiles().containsKey(fileName)) {
             throw new VirtualFileAlreadyExistsException(fileName);
         }
-        // check if fromId or toId is satellite
-        boolean toIdIsSatellite = false;
-        boolean fromIdIsSatellite = false;
+        File file = null;
         for (Satellite sat : satellites) {
-            if (sat.getSatelliteId() == toId) {
-                toIdIsSatellite = true;
-            }
             if (sat.getSatelliteId() == fromId) {
-                fromIdIsSatellite = true;
+                file = sat.satelliteSendFile(fileName);
             }
         }
-        // no more bandwidth exists for a satellite to be able to use for new devices
-        if (fromIdIsSatellite) {
-            // check if fromId have more bandwidth to send
-            for (Satellite sat : satellites) {
-                if (sat.getSatelliteId() == fromId) {
-                    double bandwidth = sat.hvSendBandwidth(1);
-                    if (bandwidth == 0) {
-                        throw new VirtualFileNoBandwidthException(fromId);
-                    }
-                }
+        for (Device dev : devices) {
+            if (dev.getDeviceId() == fromId) {
+                file = dev.deviceSendFile(fileName);
             }
         }
-        if (toIdIsSatellite) {
-            // check if toId have more bandwidth to receive
-            for (Satellite sat : satellites) {
-                if (sat.getSatelliteId() == toId) {
-                    double bandwidth = sat.hvReceiveBandwidth(1);
-                    if (bandwidth == 0) {
-                        throw new VirtualFileNoBandwidthException(toId);
-                    }
-                }
-            }
-
-        }
-        // change original file TransferCompleted to false + getFilesize
-        int fileSize = 0;
-        if (fromIdIsSatellite) {
-            for (Satellite sat : satellites) {
-                if (sat.getSatelliteId() == fromId) {
-                    ArrayList<File> files = sat.getFiles();
-                    for (File f : files) {
-                        if (f.getFilename() == fileName) {
-                            f.setTransferCompleted(false);
-                            fileSize = f.getSize();
-                        }
-                    }
-                    sat.setFiles(files);
-                }
-            }
-        } else {
-            for (Device dev : devices) {
-                if (dev.getDeviceId() == fromId) {
-                    ArrayList<File> files = dev.getFiles();
-                    for (File f : files) {
-                        if (f.getFilename() == fileName) {
-                            f.setTransferCompleted(false);
-                            fileSize = f.getSize();
-                        }
-                    }
-                }
-            }
-        }
-        // create file
-        File file = new File(fileName, "");
-        file.setSize(fileSize);
-        file.setFromId(fromId);
-        file.setTransferCompleted(false);
-        // Exception: a satellite runs out of space
         for (Satellite sat : satellites) {
             if (sat.getSatelliteId() == toId) {
-                if (sat.hvStorage(file) == 1) {
-                    throw new VirtualFileNoStorageSpaceException("Max Files Reached");
-                } else if (sat.hvStorage(file) == 2) {
-                    throw new VirtualFileNoStorageSpaceException("Max Storage Reached");
-                }
-            }
-        }
-        // add file to device
-        for (Satellite sat : satellites) {
-            if (sat.getSatelliteId() == toId) {
-                sat.addFile(file);
+                sat.satelliteReceiveFile(file);
             }
         }
         for (Device dev : devices) {
             if (dev.getDeviceId() == toId) {
-                dev.addFile(file);
+                dev.deviceReceiveFile(file);
             }
         }
     }

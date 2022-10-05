@@ -9,6 +9,8 @@ import unsw.utils.MathsHelper;
 
 import unsw.response.models.EntityInfoResponse;
 import unsw.response.models.FileInfoResponse;
+import unsw.blackout.FileTransferException.*;
+
 
 public abstract class Satellite {
     private String satelliteId;
@@ -160,5 +162,44 @@ public abstract class Satellite {
             filesMap.put(file.getFilename(), file.getFileInfo());
         }
         return new EntityInfoResponse(satelliteId, position, height, type, filesMap);
+    }
+
+    public File satelliteSendFile(String fileName) throws FileTransferException{
+        // this sat send file to other dev
+        // check bandwidth
+        int numFile = 1;
+        for (File f : files) {
+            if (!f.isTransferCompleted() && f.getFromId() == null) {
+                numFile++;
+            }
+        }
+        if (Math.floor(getSendBandwidth() / numFile) == 0) {
+            throw new VirtualFileNoBandwidthException(satelliteId);
+        }
+        // create file and return
+        for (File f : files) {
+            if (f.getFilename() == fileName) {
+                File sendFile = new File(fileName, "");
+                sendFile.setFromId(satelliteId);
+                sendFile.setTransferCompleted(false);
+                sendFile.setSize(f.getSize());
+                f.setTransferCompleted(false);
+                return sendFile;
+            }
+        }
+        return null;
+    }
+
+    public void satelliteReceiveFile(File file) throws FileTransferException {
+        int numFile = 1;
+        for (File f : files) {
+            if (!f.isTransferCompleted() && f.getFromId() != null) {
+                numFile++;
+            }
+        }
+        if (Math.floor(getReceiveBandwidth() / numFile) == 0) {
+            throw new VirtualFileNoBandwidthException(satelliteId);
+        }
+        files.add(file);
     }
 }
