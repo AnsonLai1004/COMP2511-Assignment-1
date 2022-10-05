@@ -18,11 +18,11 @@ public abstract class Device {
         this.position = position;
         this.files = new ArrayList<File>();
     }
-    public ArrayList<File> getFileList() {
+    public ArrayList<File> getFiles() {
         return files;
     }
     public void addFile(File file) {
-        files.add(file);
+        this.files.add(file);
     }
 
     public String getDeviceId() {
@@ -51,16 +51,31 @@ public abstract class Device {
 
     public abstract double getRange();
 
-    public List<String> updateCommunicables(List<Satellite> satellites) {
+    public List<String> updateCommunicables(List<Satellite> satellites, List<Device> devices) {
         List<String> communicables = new ArrayList<String>();
+        // find all communicables satellites
         for (Satellite sat : satellites) {
             double distance = MathsHelper.getDistance(sat.getHeight(), sat.getPosition(), getPosition());
             boolean visible = MathsHelper.isVisible(sat.getHeight(), sat.getPosition(), getPosition());
             if (distance <= getRange() && visible) {
+                if (sat.getType() == "RelaySatellite") {
+                    List<String> relayList = sat.updateCommunicables(satellites, devices);
+                    relayList.remove(deviceId);
+                    communicables.addAll(relayList);
+                }
                 communicables.add(sat.getSatelliteId());
             }
         }
         return communicables;
+    }
+
+    public File getFile(String fileName) {
+        for (File f : files) {
+            if (f.getFilename() == fileName) {
+                return f;
+            }
+        }
+        return null;
     }
 
 }

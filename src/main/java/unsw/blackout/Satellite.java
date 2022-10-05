@@ -57,26 +57,96 @@ public abstract class Satellite {
     public abstract double getRange();
 
     public List<String> updateCommunicables(List<Satellite> satellites, List<Device> devices) {
-        List<String> communicables = new ArrayList<String>();
+        List<String> satList = new ArrayList<String>();
+        List<String> devList = new ArrayList<String>();
+        // find all communicables satellites
         for (Satellite sat : satellites) {
             if (sat.getSatelliteId() != satelliteId) {
                 double satDistance = MathsHelper.getDistance(sat.getHeight(), sat.getPosition(), height, position);
                 boolean satVisible = MathsHelper.isVisible(sat.getHeight(), sat.getPosition(), height, position);
                 if (satDistance <= getRange() && satVisible) {
-                    communicables.add(sat.getSatelliteId());
+                    satList.add(sat.getSatelliteId());
                 }
             }
         }
+        // find all communicables devices
         for (Device device : devices) {
             double devDistance = MathsHelper.getDistance(height, position, device.getPosition());
             boolean devVisible = MathsHelper.isVisible(height, position, device.getPosition());
             if (devDistance <= getRange() && devVisible) {
-                communicables.add(device.getDeviceId());
+                devList.add(device.getDeviceId());
             }
         }
-        return communicables;
+        // check for communicables relay and add
+        List<String> relayList = new ArrayList<String>();
+        for (String id : satList) {
+            for (Satellite sat : satellites) {
+                if (sat.getSatelliteId() == id && sat.getType() == "RelaySatellite") {
+                    relayList = sat.updateCommunicables(satellites, devices);
+                    relayList.remove(satelliteId);
+                }
+            }
+        }
+        satList.addAll(relayList);
+        satList.addAll(devList);
+        return satList;
     }
+
+    public ArrayList<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(ArrayList<File> files) {
+        this.files = files;
+    }
+
+    public void addFile(File file) {
+        this.files.add(file);
+    }
+
+    /**
+     * check if satellite hv enough storage for file
+     * @param file
+     * @return 0 if true, 1 if max files reached, 2 if max storage reached
+     */
+    public abstract int hvStorage(File file);
+
+
+    public abstract double getSendBandwidth();
+
+    public abstract double getReceiveBandwidth();
+
+    public double hvSendBandwidth(int addNumFile) {
+        int numFile = addNumFile;
+        List<File> files = getFiles();
+        for (File f : files) {
+            if (!f.isTransferCompleted() && f.getFromId() == null) {
+                numFile++;
+            }
+        }
+        double bandwidth = Math.floor(getSendBandwidth() / numFile);
+        return bandwidth;
+    };
+
+    public double hvReceiveBandwidth(int addNumFile) {
+        int numFile = addNumFile;
+        List<File> files = getFiles();
+        for (File f : files) {
+            if (!f.isTransferCompleted() && f.getFromId() != null) {
+                numFile++;
+            }
+        }
+        double bandwidth = Math.floor(getReceiveBandwidth() / numFile);
+        return bandwidth;
+    };
+
+    public File getFile(String fileName) {
+        for (File f : files) {
+            if (f.getFilename() == fileName) {
+                return f;
+            }
+        }
+        return null;
+    }
+
 }
-// distances are in kilometres (1km = 1000m)
-// Angular velocity is in radians per min
-// Linear velocity is in kilometres per min

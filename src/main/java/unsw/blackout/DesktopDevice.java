@@ -17,14 +17,14 @@ public class DesktopDevice extends Device {
     }
 
     @Override
-    public List<String> updateCommunicables(List<Satellite> satellites) {
+    public List<String> updateCommunicables(List<Satellite> satellites, List<Device> devices) {
         List<Satellite> satList = new ArrayList<Satellite>();
         for (Satellite sat : satellites) {
             if (sat.getType() != "StandardSatellite") {
                 satList.add(sat);
             }
         }
-        return super.updateCommunicables(satList);
+        return super.updateCommunicables(satList, devices);
     }
 
 }
