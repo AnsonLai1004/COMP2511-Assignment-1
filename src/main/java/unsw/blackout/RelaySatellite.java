@@ -47,11 +47,6 @@ public class RelaySatellite extends Satellite {
     }
 
     @Override
-    public int hvStorage(File file) {
-        return 1;
-    }
-
-    @Override
     public double getSendBandwidth() {
         return sendBandwidth;
     }

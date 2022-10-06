@@ -4,6 +4,7 @@ import unsw.utils.Angle;
 
 import java.util.ArrayList;
 import java.util.List;
+import unsw.blackout.FileTransferException.*;
 
 public class StandardSatellite extends Satellite {
     private double linearVelocity = 2500;
@@ -40,22 +41,6 @@ public class StandardSatellite extends Satellite {
     }
 
     @Override
-    public int hvStorage(File file) {
-        List<File> files = super.getFiles();
-        int count = file.getSize();
-        if (files.size() + 1 > 3) {
-            return 1;
-        }
-        for (File f : files) {
-            count += f.getSize();
-        }
-        if (count > 80) {
-            return 2;
-        }
-        return 0;
-    }
-
-    @Override
     public double getSendBandwidth() {
         return sendBandwidth;
     }
@@ -63,5 +48,21 @@ public class StandardSatellite extends Satellite {
     @Override
     public double getReceiveBandwidth() {
         return receiveBandwidth;
+    }
+
+    @Override
+    public void satelliteReceiveFile(File file) throws FileTransferException {
+        List<File> files = super.getFiles();
+        int count = file.getSize();
+        if (files.size() + 1 > 3) {
+            throw new VirtualFileNoStorageSpaceException("Max Files Reached");
+        }
+        for (File f : files) {
+            count += f.getSize();
+        }
+        if (count > 80) {
+            throw new VirtualFileNoStorageSpaceException("Max Storage Reached");
+        }
+        super.satelliteReceiveFile(file);
     }
 }

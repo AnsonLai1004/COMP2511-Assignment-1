@@ -1,10 +1,16 @@
 package unsw.blackout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import unsw.response.models.EntityInfoResponse;
+import unsw.response.models.FileInfoResponse;
 import unsw.utils.Angle;
 import unsw.utils.MathsHelper;
+
+import static unsw.utils.MathsHelper.RADIUS_OF_JUPITER;
 
 public abstract class Device {
     private String deviceId;
@@ -20,6 +26,9 @@ public abstract class Device {
     }
     public ArrayList<File> getFiles() {
         return files;
+    }
+    public void setFiles(ArrayList<File> files) {
+        this.files = files;
     }
     public void addFile(File file) {
         this.files.add(file);
@@ -78,4 +87,45 @@ public abstract class Device {
         return null;
     }
 
+    public EntityInfoResponse getDeviceInfo() {
+        Map<String, FileInfoResponse> filesMap = new HashMap<String, FileInfoResponse>();
+        for (File file : files) {
+            filesMap.put(file.getFilename(), file.getFileInfo());
+        }
+        return new EntityInfoResponse(deviceId, position, RADIUS_OF_JUPITER, type, filesMap);
+    }
+
+    public File deviceSendFile(String fileName) {
+        File file = getFile(fileName);
+        File send = new File(fileName, file.getContent(), "", file.getSize(), false, deviceId, Integer.MAX_VALUE);
+        return send;
+    }
+
+    public void deviceReceiveFile(File file) {
+        files.add(file);
+    }
+
+    public ArrayList<String> updateProgress() {
+        // update all the files
+        ArrayList<String> ids = new ArrayList<String>();
+        for (File f : files) {
+            String id = f.updateProgress();
+            if (id != null) {
+                ids.add(id);
+            }
+        }
+        return ids;
+    }
+    public ArrayList<String> removeFilesOutOfRange(List<String> communicables) {
+        ArrayList<String> remove = new ArrayList<String>();
+        for (File f : files) {
+            if (!f.isTransferCompleted()) {
+                if (!communicables.contains(f.getFromId())) {
+                    remove.add(f.getFromId());
+                    files.remove(f);
+                }
+            }
+        }
+        return remove;
+    }
 }
