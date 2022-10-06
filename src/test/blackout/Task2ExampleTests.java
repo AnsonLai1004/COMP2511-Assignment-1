@@ -50,30 +50,6 @@ public class Task2ExampleTests {
 
         assertListAreEqualIgnoringOrder(Arrays.asList("DeviceD"), controller.communicableEntitiesInRange("Satellite3"));
     }
-    // new test 1
-    @Test
-    public void testRelayExtentRange() {
-        // Task 2
-        // Example from the specification
-        BlackoutController controller = new BlackoutController();
-
-        // Creates 1 satellite and 2 devices
-        // Gets a device to send a file to a satellites and gets another device to download it.
-        // StandardSatellites are slow and transfer 1 byte per minute.
-        controller.createSatellite("Satellite1", "StandardSatellite", 79741, Angle.fromDegrees(210));
-        controller.createDevice("DeviceC", "HandheldDevice", Angle.fromDegrees(130));
-        controller.createSatellite("Satellite3", "RelaySatellite", 81795, Angle.fromDegrees(161));
-
-        assertListAreEqualIgnoringOrder(
-            Arrays.asList("DeviceC", "Satellite3"),
-            controller.communicableEntitiesInRange("Satellite1"));
-        assertListAreEqualIgnoringOrder(
-            Arrays.asList("DeviceC", "Satellite1"),
-            controller.communicableEntitiesInRange("Satellite3"));
-        assertListAreEqualIgnoringOrder(
-            Arrays.asList("Satellite1", "Satellite3"),
-            controller.communicableEntitiesInRange("DeviceC"));
-    }
     @Test
     public void testSomeExceptionsForSend() {
         // just some of them... you'll have to test the rest

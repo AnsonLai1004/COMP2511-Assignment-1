@@ -209,5 +209,5 @@ public abstract class Satellite {
         }
         return remove;
     }
-    
+
 }

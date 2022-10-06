@@ -72,10 +72,19 @@ public class TeleportingSatellite extends Satellite {
         String removeT = content.replace("t", "");
         return f.teleportTransfer(removeT);
     }
+    @Override
+    public ArrayList<String> updateProgress() {
+        // update all the files
+        ArrayList<String> ids = new ArrayList<String>();
+        if (teleported) {
+            for (File f : super.getFiles()) {
+                if (!f.isTransferCompleted()) {
+                    ids.add(instantDownload(f.getFilename()));
+                }
+            }
+        }
+        ids.addAll(super.updateProgress());
+        return ids;
+    }
 
-    // from sat to dev or a sat - file instantly downloaded,
-    // however all "t" letter bytes are removed from the remaining bytes to be sent
-
-    // from dev to sat - download fails and removed from the sat,
-    // all "t" letter bytes are removed from the file on the device
 }
