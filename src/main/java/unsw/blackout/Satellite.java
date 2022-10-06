@@ -18,7 +18,7 @@ public abstract class Satellite {
     private Angle position;
     private double height;
     private ArrayList<File> files;
-
+    private int sending = 0;
     public Satellite(String satelliteId, String type, Angle position, double height) {
         this.satelliteId = satelliteId;
         this.type = type;
@@ -111,40 +111,25 @@ public abstract class Satellite {
         this.files.add(file);
     }
 
-    /**
-     * check if satellite hv enough storage for file
-     * @param file
-     * @return 0 if true, 1 if max files reached, 2 if max storage reached
-     */
-    public abstract int hvStorage(File file);
-
-
     public abstract double getSendBandwidth();
 
     public abstract double getReceiveBandwidth();
 
-    public double hvSendBandwidth(int addNumFile) {
-        int numFile = addNumFile;
-        List<File> files = getFiles();
-        for (File f : files) {
-            if (!f.isTransferCompleted() && f.getFromId() == null) {
-                numFile++;
-            }
-        }
-        double bandwidth = Math.floor(getSendBandwidth() / numFile);
-        return bandwidth;
+    public int hvSendBandwidth() {
+        double bandwidth = Math.floor(getSendBandwidth() / sending);
+        return (int) bandwidth;
     };
 
-    public double hvReceiveBandwidth(int addNumFile) {
-        int numFile = addNumFile;
+    public int hvReceiveBandwidth() {
+        int numFile = 0;
         List<File> files = getFiles();
         for (File f : files) {
-            if (!f.isTransferCompleted() && f.getFromId() != null) {
+            if (!f.isTransferCompleted()) {
                 numFile++;
             }
         }
         double bandwidth = Math.floor(getReceiveBandwidth() / numFile);
-        return bandwidth;
+        return (int) bandwidth;
     };
 
     public File getFile(String fileName) {
@@ -164,42 +149,65 @@ public abstract class Satellite {
         return new EntityInfoResponse(satelliteId, position, height, type, filesMap);
     }
 
-    public File satelliteSendFile(String fileName) throws FileTransferException{
+    public File satelliteSendFile(String fileName) throws FileTransferException {
         // this sat send file to other dev
         // check bandwidth
-        int numFile = 1;
-        for (File f : files) {
-            if (!f.isTransferCompleted() && f.getFromId() == null) {
-                numFile++;
-            }
-        }
-        if (Math.floor(getSendBandwidth() / numFile) == 0) {
+        int speed = (int) Math.floor(getSendBandwidth() / (sending + 1));
+        if (speed == 0) {
             throw new VirtualFileNoBandwidthException(satelliteId);
         }
-        // create file and return
-        for (File f : files) {
-            if (f.getFilename() == fileName) {
-                File sendFile = new File(fileName, "");
-                sendFile.setFromId(satelliteId);
-                sendFile.setTransferCompleted(false);
-                sendFile.setSize(f.getSize());
-                f.setTransferCompleted(false);
-                return sendFile;
-            }
-        }
-        return null;
+        File file = getFile(fileName);
+        File send = new File(fileName, file.getContent(), "", file.getSize(), false, satelliteId, speed);
+        sending++;
+        return send;
     }
 
     public void satelliteReceiveFile(File file) throws FileTransferException {
         int numFile = 1;
         for (File f : files) {
-            if (!f.isTransferCompleted() && f.getFromId() != null) {
+            if (!f.isTransferCompleted()) {
                 numFile++;
             }
         }
-        if (Math.floor(getReceiveBandwidth() / numFile) == 0) {
+        int speed = (int) Math.floor(getReceiveBandwidth() / numFile);
+        if (speed == 0) {
             throw new VirtualFileNoBandwidthException(satelliteId);
         }
+        speed = Math.min(speed, file.getSpeed());
+        file.setSpeed(speed);
         files.add(file);
     }
+
+    public ArrayList<String> updateProgress() {
+        // update all the files
+        ArrayList<String> ids = new ArrayList<String>();
+        for (File f : files) {
+            String id = f.updateProgress();
+            if (id != null) {
+                ids.add(id);
+            }
+        }
+        return ids;
+    }
+
+    public int getSending() {
+        return sending;
+    }
+
+    public void setSending(int sending) {
+        this.sending = sending;
+    }
+    public ArrayList<String> removeFilesOutOfRange(List<String> communicables) {
+        ArrayList<String> remove = new ArrayList<String>();
+        for (File f : files) {
+            if (!f.isTransferCompleted()) {
+                if (!communicables.contains(f.getFromId())) {
+                    remove.add(f.getFromId());
+                    files.remove(f);
+                }
+            }
+        }
+        return remove;
+    }
+    
 }

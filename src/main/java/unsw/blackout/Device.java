@@ -27,6 +27,9 @@ public abstract class Device {
     public ArrayList<File> getFiles() {
         return files;
     }
+    public void setFiles(ArrayList<File> files) {
+        this.files = files;
+    }
     public void addFile(File file) {
         this.files.add(file);
     }
@@ -93,20 +96,36 @@ public abstract class Device {
     }
 
     public File deviceSendFile(String fileName) {
-        for (File f : files) {
-            if (f.getFilename() == fileName) {
-                File sendFile = new File(fileName, "");
-                sendFile.setFromId(deviceId);
-                sendFile.setTransferCompleted(false);
-                sendFile.setSize(f.getSize());
-                f.setTransferCompleted(false);
-                return sendFile;
-            }
-        }
-        return null;
+        File file = getFile(fileName);
+        File send = new File(fileName, file.getContent(), "", file.getSize(), false, deviceId, Integer.MAX_VALUE);
+        return send;
     }
 
     public void deviceReceiveFile(File file) {
         files.add(file);
+    }
+
+    public ArrayList<String> updateProgress() {
+        // update all the files
+        ArrayList<String> ids = new ArrayList<String>();
+        for (File f : files) {
+            String id = f.updateProgress();
+            if (id != null) {
+                ids.add(id);
+            }
+        }
+        return ids;
+    }
+    public ArrayList<String> removeFilesOutOfRange(List<String> communicables) {
+        ArrayList<String> remove = new ArrayList<String>();
+        for (File f : files) {
+            if (!f.isTransferCompleted()) {
+                if (!communicables.contains(f.getFromId())) {
+                    remove.add(f.getFromId());
+                    files.remove(f);
+                }
+            }
+        }
+        return remove;
     }
 }

@@ -1,9 +1,13 @@
 package unsw.blackout;
 
 import unsw.utils.Angle;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import static unsw.utils.MathsHelper.ANTI_CLOCKWISE;
+import unsw.blackout.FileTransferException.*;
+
 
 public class TeleportingSatellite extends Satellite {
     private double linearVelocity = 1000;
@@ -41,19 +45,6 @@ public class TeleportingSatellite extends Satellite {
     }
 
     @Override
-    public int hvStorage(File file) {
-        List<File> files = super.getFiles();
-        int count = file.getSize();
-        for (File f : files) {
-            count += f.getSize();
-        }
-        if (count > 200) {
-            return 2;
-        }
-        return 0;
-    }
-
-    @Override
     public double getSendBandwidth() {
         return sendBandwidth;
     }
@@ -63,6 +54,24 @@ public class TeleportingSatellite extends Satellite {
         return receiveBandwidth;
     }
 
+    @Override
+    public void satelliteReceiveFile(File file) throws FileTransferException {
+        List<File> files = super.getFiles();
+        int count = file.getSize();
+        for (File f : files) {
+            count += f.getSize();
+        }
+        if (count > 200) {
+            throw new VirtualFileNoStorageSpaceException("Max Storage Reached");
+        }
+        super.satelliteReceiveFile(file);
+    }
+    public String instantDownload(String fileName) {
+        File f = super.getFile(fileName);
+        String content = f.getContent();
+        String removeT = content.replace("t", "");
+        return f.teleportTransfer(removeT);
+    }
 
     // from sat to dev or a sat - file instantly downloaded,
     // however all "t" letter bytes are removed from the remaining bytes to be sent
