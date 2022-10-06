@@ -63,6 +63,12 @@ public abstract class Satellite {
 
     public abstract double getRange();
 
+    /**
+     * find all devices in range
+     * @param satellites
+     * @param devices
+     * @return
+     */
     public List<String> updateCommunicables(List<Satellite> satellites, List<Device> devices) {
         List<String> satList = new ArrayList<String>();
         List<String> devList = new ArrayList<String>();
@@ -140,6 +146,7 @@ public abstract class Satellite {
         }
         return null;
     }
+
 
     public EntityInfoResponse getSatelliteInfo() {
         Map<String, FileInfoResponse> filesMap = new HashMap<String, FileInfoResponse>();

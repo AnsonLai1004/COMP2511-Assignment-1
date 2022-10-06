@@ -222,6 +222,7 @@ public class BlackoutController {
         if (to.getFiles().containsKey(fileName)) {
             throw new VirtualFileAlreadyExistsException(fileName);
         }
+        // send file
         File file = null;
         for (Satellite sat : satellites) {
             if (sat.getSatelliteId() == fromId) {
@@ -233,6 +234,7 @@ public class BlackoutController {
                 file = dev.deviceSendFile(fileName);
             }
         }
+        // receive file
         for (Satellite sat : satellites) {
             if (sat.getSatelliteId() == toId) {
                 sat.satelliteReceiveFile(file);

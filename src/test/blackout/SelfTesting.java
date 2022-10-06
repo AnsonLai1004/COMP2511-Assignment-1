@@ -37,6 +37,7 @@ public class SelfTesting {
             Arrays.asList("Satellite1", "Satellite3"),
             controller.communicableEntitiesInRange("DeviceC"));
     }
+    @Test
     public void messageProgress() {
         BlackoutController controller = new BlackoutController();
         controller.createSatellite(
