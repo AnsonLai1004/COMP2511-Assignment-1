@@ -1,5 +1,0 @@
-{
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "java.checkstyle.configuration": "${workspaceFolder}/checkstyle.xml",
-    "java.checkstyle.version": "10.3.3"
-}

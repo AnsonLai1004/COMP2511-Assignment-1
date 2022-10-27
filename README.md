@@ -1,1 +1,0 @@
-You can view the assignment specification here: https://unswcse.atlassian.net/wiki/spaces/cs2511/pages/31758379/Assignment+I+Back+in+Blackout
